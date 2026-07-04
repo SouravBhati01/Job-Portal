@@ -34,6 +34,7 @@ public class JobServiceImpl implements JobService {
 
         Job job = Job.builder()
                 .title(req.getTitle())
+                .company(req.getCompany())
                 .description(req.getDescription())
                 .requirements(req.getRequirements())
                 .benefits(req.getBenefits())
@@ -79,6 +80,7 @@ public class JobServiceImpl implements JobService {
         validateSalaryRange(req.getSalaryMin(), req.getSalaryMax());
 
         job.setTitle(req.getTitle());
+        job.setCompany(req.getCompany());
         job.setDescription(req.getDescription());
         job.setRequirements(req.getRequirements());
         job.setBenefits(req.getBenefits());
@@ -167,6 +169,7 @@ public class JobServiceImpl implements JobService {
         return JobResponse.builder()
                 .id(j.getId())
                 .title(j.getTitle())
+                .company(j.getCompany())
                 .description(j.getDescription())
                 .requirements(j.getRequirements())
                 .benefits(j.getBenefits())

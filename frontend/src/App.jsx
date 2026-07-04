@@ -821,7 +821,7 @@ function App() {
                 <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                 <input 
                   type="text" 
-                  placeholder="Job title, keywords, or company..." 
+                  placeholder="e.g. Java Backend, React, TCS, Google..." 
                   style={{ paddingLeft: '2.5rem' }} 
                   value={searchKeyword} 
                   onChange={e => setSearchKeyword(e.target.value)}
@@ -833,7 +833,7 @@ function App() {
                 <MapPin size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                 <input 
                   type="text" 
-                  placeholder="City, state, or country..." 
+                  placeholder="e.g. Bangalore, Mumbai, Chennai, Hyderabad..." 
                   style={{ paddingLeft: '2.5rem' }} 
                   value={searchLocation} 
                   onChange={e => setSearchLocation(e.target.value)}
@@ -906,7 +906,19 @@ function App() {
                             Remote
                           </span>
                         )}
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                        <span style={{ 
+                          fontSize: '0.85rem', 
+                          fontWeight: '600',
+                          padding: '0.2rem 0.6rem', 
+                          borderRadius: '4px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          ...(job.jobType === 'FULL_TIME' ? { color: '#4ade80', background: 'rgba(74, 222, 128, 0.1)', border: '1px solid rgba(74, 222, 128, 0.2)' } :
+                              job.jobType === 'INTERNSHIP' ? { color: '#f472b6', background: 'rgba(244, 114, 182, 0.1)', border: '1px solid rgba(244, 114, 182, 0.2)' } :
+                              job.jobType === 'CONTRACT' ? { color: '#60a5fa', background: 'rgba(96, 165, 250, 0.1)', border: '1px solid rgba(96, 165, 250, 0.2)' } :
+                              job.jobType === 'PART_TIME' ? { color: '#fbbf24', background: 'rgba(251, 191, 36, 0.1)', border: '1px solid rgba(251, 191, 36, 0.2)' } :
+                              { color: '#c084fc', background: 'rgba(192, 132, 252, 0.1)', border: '1px solid rgba(192, 132, 252, 0.2)' })
+                        }}>
                           {job.jobType.replace('_', ' ')}
                         </span>
                       </div>
@@ -948,7 +960,21 @@ function App() {
               <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', marginBottom: '0.75rem' }}>
                 <span style={{ color: '#c084fc', fontWeight: 'bold' }}>{selectedJob.company}</span>
                 {selectedJob.remote && <span className="status-badge status-shortlisted">Remote</span>}
-                <span className="status-badge status-interviewing">{selectedJob.jobType.replace('_', ' ')}</span>
+                <span style={{ 
+                  fontSize: '0.85rem', 
+                  fontWeight: '600',
+                  padding: '0.2rem 0.6rem', 
+                  borderRadius: '4px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  ...(selectedJob.jobType === 'FULL_TIME' ? { color: '#4ade80', background: 'rgba(74, 222, 128, 0.1)', border: '1px solid rgba(74, 222, 128, 0.2)' } :
+                      selectedJob.jobType === 'INTERNSHIP' ? { color: '#f472b6', background: 'rgba(244, 114, 182, 0.1)', border: '1px solid rgba(244, 114, 182, 0.2)' } :
+                      selectedJob.jobType === 'CONTRACT' ? { color: '#60a5fa', background: 'rgba(96, 165, 250, 0.1)', border: '1px solid rgba(96, 165, 250, 0.2)' } :
+                      selectedJob.jobType === 'PART_TIME' ? { color: '#fbbf24', background: 'rgba(251, 191, 36, 0.1)', border: '1px solid rgba(251, 191, 36, 0.2)' } :
+                      { color: '#c084fc', background: 'rgba(192, 132, 252, 0.1)', border: '1px solid rgba(192, 132, 252, 0.2)' })
+                }}>
+                  {selectedJob.jobType.replace('_', ' ')}
+                </span>
               </div>
               <h2 style={{ fontSize: '2rem', marginBottom: '0.5rem', fontFamily: 'var(--font-heading)' }}>{selectedJob.title}</h2>
               <div style={{ display: 'flex', gap: '2rem', color: 'var(--text-secondary)' }}>

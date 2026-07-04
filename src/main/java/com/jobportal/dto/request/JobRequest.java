@@ -17,6 +17,9 @@ public class JobRequest {
     @Size(min = 3, max = 200, message = "Title must be 3-200 characters")
     private String title;
 
+    @Size(max = 150, message = "Company name must be at most 150 characters")
+    private String company;
+
     @NotBlank(message = "Job description is required")
     @Size(min = 30, message = "Description must be at least 30 characters")
     private String description;

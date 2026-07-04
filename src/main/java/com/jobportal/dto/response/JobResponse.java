@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 public class JobResponse {
     private Long id;
     private String title;
+    private String company;
     private String description;
     private String requirements;
     private String benefits;
