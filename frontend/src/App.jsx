@@ -133,12 +133,17 @@ function App() {
       const data = await res.json()
       if (data.success) {
         // Save user state
+        const roleList = Array.isArray(data.data.roles) ? data.data.roles : Array.from(data.data.roles || [])
+        const nameVal = data.data.fullName || ''
+        const first = nameVal.split(' ')[0] || 'User'
+        const last = nameVal.split(' ').slice(1).join(' ') || ''
+        
         const loggedUser = {
           email: data.data.email,
-          firstName: data.data.firstName,
-          lastName: data.data.lastName,
-          role: data.data.roles[0], // primary role
-          token: data.data.token
+          firstName: first,
+          lastName: last,
+          role: roleList[0] || 'ROLE_APPLICANT',
+          token: data.data.accessToken
         }
         setUser(loggedUser)
         localStorage.setItem('cp_user', JSON.stringify(loggedUser))
@@ -181,11 +186,39 @@ function App() {
       })
       const data = await res.json()
       if (data.success) {
-        showToast('Registration successful! Please log in now.')
-        setShowAuthModal('login')
+        // Automatically login the registered user directly to their dashboard
+        const roleList = Array.isArray(data.data.roles) ? data.data.roles : Array.from(data.data.roles || [])
+        const nameVal = data.data.fullName || ''
+        const first = nameVal.split(' ')[0] || 'User'
+        const last = nameVal.split(' ').slice(1).join(' ') || ''
+        
+        const loggedUser = {
+          email: data.data.email,
+          firstName: first,
+          lastName: last,
+          role: roleList[0] || 'ROLE_APPLICANT',
+          token: data.data.accessToken
+        }
+        setUser(loggedUser)
+        localStorage.setItem('cp_user', JSON.stringify(loggedUser))
+        showToast(`Registration successful! Welcome, ${loggedUser.firstName}!`)
+        setShowAuthModal(null)
+        
+        // Reset auth fields
         setAuthFirstName('')
         setAuthLastName('')
         setAuthPhone('')
+        setAuthEmail('')
+        setAuthPassword('')
+        
+        // Redirect depending on role
+        if (loggedUser.role === 'ROLE_ADMIN') {
+          setView('admin-reports')
+        } else if (loggedUser.role === 'ROLE_RECRUITER') {
+          setView('posted-jobs')
+        } else {
+          setView('jobs')
+        }
       } else {
         showToast(data.message || 'Registration failed', 'error')
       }
@@ -193,7 +226,6 @@ function App() {
       showToast('Connection failed during registration', 'error')
     }
   }
-
   // Logout handler
   const handleLogout = () => {
     setUser(null)
