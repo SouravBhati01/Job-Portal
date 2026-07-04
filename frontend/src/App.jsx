@@ -16,10 +16,21 @@ function App() {
     const saved = localStorage.getItem('cp_user')
     return saved ? JSON.parse(saved) : null
   })
+
   // Navigation / View State
   // Views: 'jobs', 'my-applications', 'posted-jobs', 'resumes', 'admin-reports', 'admin-users'
-  const [view, setView] = useState('jobs')
+  const [view, setView] = useState(() => {
+    const saved = localStorage.getItem('cp_user')
+    if (saved) {
+      const parsed = JSON.parse(saved)
+      if (parsed.role === 'ROLE_ADMIN') return 'admin-reports'
+      if (parsed.role === 'ROLE_RECRUITER') return 'posted-jobs'
+    }
+    return 'jobs'
+  })
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isAuthLoading, setIsAuthLoading] = useState(false)
+
   // Auth Modals
   const [showAuthModal, setShowAuthModal] = useState(null) // 'login', 'register' or null
   const [authRole, setAuthRole] = useState('ROLE_APPLICANT')
@@ -121,8 +132,10 @@ function App() {
   }, [searchJobType, searchRemote])
 
   // Login handler
+  // Login handler
   const handleLogin = async (e) => {
     e.preventDefault()
+    setIsAuthLoading(true)
     try {
       const res = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
@@ -164,12 +177,15 @@ function App() {
       }
     } catch (err) {
       showToast('Failed to connect to backend auth service', 'error')
+    } finally {
+      setIsAuthLoading(false)
     }
   }
 
   // Register handler
   const handleRegister = async (e) => {
     e.preventDefault()
+    setIsAuthLoading(true)
     try {
       const res = await fetch(`${API_BASE}/auth/register`, {
         method: 'POST',
@@ -223,6 +239,8 @@ function App() {
       }
     } catch (err) {
       showToast('Connection failed during registration', 'error')
+    } finally {
+      setIsAuthLoading(false)
     }
   }
   // Logout handler
@@ -231,6 +249,19 @@ function App() {
     localStorage.removeItem('cp_user')
     showToast('Logged out successfully.')
     setView('jobs')
+  }
+
+  // Logo Click redirect handler
+  const handleLogoClick = () => {
+    setSelectedJob(null)
+    setSelectedJobForApplicants(null)
+    if (user?.role === 'ROLE_ADMIN') {
+      setView('admin-reports')
+    } else if (user?.role === 'ROLE_RECRUITER') {
+      setView('posted-jobs')
+    } else {
+      setView('jobs')
+    }
   }
 
   // Helper headers with auth token
@@ -608,7 +639,7 @@ function App() {
       {/* Navigation Header */}
       <header className="navbar">
         <div className="navbar-container">
-          <div className="logo" onClick={() => { setView('jobs'); setSelectedJob(null); }} style={{ cursor: 'pointer' }}>
+          <div className="logo" onClick={handleLogoClick} style={{ cursor: 'pointer' }}>
             <Briefcase size={24} className="animate-pulse-glow" style={{ color: '#8b5cf6' }} />
             <span>CareerPulse</span>
           </div>
@@ -1425,14 +1456,42 @@ function App() {
               <form onSubmit={handleLogin}>
                 <div style={{ marginBottom: '1rem' }}>
                   <label>Email Address</label>
-                  <input type="email" placeholder="you@example.com" required value={authEmail} onChange={e => setAuthEmail(e.target.value)} />
+                  <input type="email" placeholder="you@example.com" required value={authEmail} onChange={e => setAuthEmail(e.target.value)} disabled={isAuthLoading} />
                 </div>
                 <div style={{ marginBottom: '1.5rem' }}>
                   <label>Password</label>
-                  <input type="password" placeholder="••••••••" required value={authPassword} onChange={e => setAuthPassword(e.target.value)} />
+                  <input type="password" placeholder="••••••••" required value={authPassword} onChange={e => setAuthPassword(e.target.value)} disabled={isAuthLoading} />
                 </div>
-                <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Sign In</button>
-                <p style={{ marginTop: '1rem', textAlign: 'center', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={isAuthLoading}>
+                  {isAuthLoading ? (
+                    <>
+                      <RefreshCw size={16} className="animate-spin" />
+                      <span>Signing In...</span>
+                    </>
+                  ) : (
+                    <span>Sign In</span>
+                  )}
+                </button>
+
+                {/* Quick Demo Credentials Selection Helper */}
+                <div style={{ marginTop: '1.25rem', borderTop: '1px solid var(--border-color)', paddingTop: '1rem', textAlign: 'left' }}>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.5rem', fontWeight: '600' }}>
+                    Quick Login Demo Accounts:
+                  </span>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <button type="button" className="btn btn-secondary btn-sm" onClick={() => { setAuthEmail('admin@jobportal.com'); setAuthPassword('Admin@1234'); }} style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }} disabled={isAuthLoading}>
+                      Admin
+                    </button>
+                    <button type="button" className="btn btn-secondary btn-sm" onClick={() => { setAuthEmail('recruiter@jobportal.com'); setAuthPassword('Recruit@1234'); }} style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }} disabled={isAuthLoading}>
+                      Recruiter
+                    </button>
+                    <button type="button" className="btn btn-secondary btn-sm" onClick={() => { setAuthEmail('applicant@jobportal.com'); setAuthPassword('Apply@1234'); }} style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem' }} disabled={isAuthLoading}>
+                      Applicant
+                    </button>
+                  </div>
+                </div>
+
+                <p style={{ marginTop: '1.25rem', textAlign: 'center', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
                   New to CareerPulse?{' '}
                   <span style={{ color: 'var(--accent-primary)', cursor: 'pointer', fontWeight: '500' }} onClick={() => setShowAuthModal('register')}>
                     Create an account
@@ -1444,33 +1503,42 @@ function App() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                   <div>
                     <label>First Name</label>
-                    <input type="text" placeholder="John" required value={authFirstName} onChange={e => setAuthFirstName(e.target.value)} />
+                    <input type="text" placeholder="John" required value={authFirstName} onChange={e => setAuthFirstName(e.target.value)} disabled={isAuthLoading} />
                   </div>
                   <div>
                     <label>Last Name</label>
-                    <input type="text" placeholder="Doe" required value={authLastName} onChange={e => setAuthLastName(e.target.value)} />
+                    <input type="text" placeholder="Doe" required value={authLastName} onChange={e => setAuthLastName(e.target.value)} disabled={isAuthLoading} />
                   </div>
                 </div>
                 <div style={{ marginBottom: '1rem' }}>
                   <label>Email Address</label>
-                  <input type="email" placeholder="name@domain.com" required value={authEmail} onChange={e => setAuthEmail(e.target.value)} />
+                  <input type="email" placeholder="name@domain.com" required value={authEmail} onChange={e => setAuthEmail(e.target.value)} disabled={isAuthLoading} />
                 </div>
                 <div style={{ marginBottom: '1rem' }}>
                   <label>Password</label>
-                  <input type="password" placeholder="Min. 8 characters" required value={authPassword} onChange={e => setAuthPassword(e.target.value)} />
+                  <input type="password" placeholder="Min. 8 characters" required value={authPassword} onChange={e => setAuthPassword(e.target.value)} disabled={isAuthLoading} />
                 </div>
                 <div style={{ marginBottom: '1rem' }}>
                   <label>Phone Number</label>
-                  <input type="tel" placeholder="+91 9999999999" value={authPhone} onChange={e => setAuthPhone(e.target.value)} />
+                  <input type="tel" placeholder="+91 9999999999" value={authPhone} onChange={e => setAuthPhone(e.target.value)} disabled={isAuthLoading} />
                 </div>
                 <div style={{ marginBottom: '1.5rem' }}>
                   <label>Register As</label>
-                  <select value={authRole} onChange={e => setAuthRole(e.target.value)}>
+                  <select value={authRole} onChange={e => setAuthRole(e.target.value)} disabled={isAuthLoading}>
                     <option value="ROLE_APPLICANT">Applicant (looking for jobs)</option>
                     <option value="ROLE_RECRUITER">Recruiter (posting jobs)</option>
                   </select>
                 </div>
-                <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Create Account</button>
+                <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={isAuthLoading}>
+                  {isAuthLoading ? (
+                    <>
+                      <RefreshCw size={16} className="animate-spin" />
+                      <span>Creating Account...</span>
+                    </>
+                  ) : (
+                    <span>Create Account</span>
+                  )}
+                </button>
                 <p style={{ marginTop: '1rem', textAlign: 'center', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
                   Already have an account?{' '}
                   <span style={{ color: 'var(--accent-primary)', cursor: 'pointer', fontWeight: '500' }} onClick={() => setShowAuthModal('login')}>
