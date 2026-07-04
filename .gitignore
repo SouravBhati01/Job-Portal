@@ -1,0 +1,31 @@
+# Maven / Java
+target/
+*.class
+.project
+.classpath
+.settings/
+.idea/
+*.iml
+*.iws
+.mvn/wrapper/maven-wrapper.jar
+
+# Frontend / Node
+frontend/node_modules/
+frontend/dist/
+frontend/.eslintcache
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# Operating System / IDEs
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+
+# Project-specific / Temporary
+uploads/
+*.log
+.gemini/
