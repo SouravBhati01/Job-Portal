@@ -459,7 +459,7 @@ label {
   box-shadow: var(--shadow-glow);
 }
 
-/* Animations */
+/* Animations & Scrollbars */
 .animate-pulse-glow {
   animation: pulseGlow 2s infinite alternate;
 }
@@ -487,3 +487,121 @@ label {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.3);
 }
+
+/* Mobile Toggle Button */
+.mobile-menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 0.5rem;
+  transition: opacity var(--transition-fast);
+}
+
+.mobile-menu-toggle:hover {
+  opacity: 0.8;
+}
+
+/* Responsive Grids & Layouts */
+.search-bar-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 150px 140px;
+  gap: 1rem;
+  align-items: center;
+}
+
+.responsive-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+@media (max-width: 992px) {
+  .search-bar-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Navbar adjustments */
+  .mobile-menu-toggle {
+    display: block;
+  }
+  
+  .navbar-container .nav-links {
+    display: none;
+  }
+  
+  /* Mobile Menu Overlay Drawer */
+  .mobile-menu {
+    position: fixed;
+    top: 70px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(11, 11, 15, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    z-index: 99;
+    display: flex;
+    flex-direction: column;
+    padding: 2rem 1.5rem;
+    gap: 1.25rem;
+    border-top: 1px solid var(--border-color);
+    animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow-y: auto;
+  }
+  
+  @keyframes slideDown {
+    from { transform: translateY(-10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  
+  .mobile-menu .nav-link {
+    font-size: 1.15rem;
+    padding: 0.75rem 1rem;
+    width: 100%;
+    border-radius: var(--radius-md);
+  }
+  
+  .mobile-menu .user-badge {
+    align-self: flex-start;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+  }
+  
+  .mobile-menu .auth-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+    margin-top: 1rem;
+  }
+
+  /* Responsive Grids */
+  .search-bar-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .responsive-grid-2 {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  /* Modal responsiveness */
+  .modal-content {
+    padding: 1.5rem;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+

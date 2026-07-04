@@ -16,11 +16,10 @@ function App() {
     const saved = localStorage.getItem('cp_user')
     return saved ? JSON.parse(saved) : null
   })
-
   // Navigation / View State
   // Views: 'jobs', 'my-applications', 'posted-jobs', 'resumes', 'admin-reports', 'admin-users'
   const [view, setView] = useState('jobs')
-
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   // Auth Modals
   const [showAuthModal, setShowAuthModal] = useState(null) // 'login', 'register' or null
   const [authRole, setAuthRole] = useState('ROLE_APPLICANT')
@@ -579,9 +578,9 @@ function App() {
       showToast('Error downloading resume file', 'error')
     }
   }
-
   // Trigger loading details when view transitions
   useEffect(() => {
+    setMobileMenuOpen(false)
     if (view === 'resumes') {
       fetchMyResumes()
     } else if (view === 'my-applications') {
@@ -594,7 +593,6 @@ function App() {
       fetchAdminReports()
     }
   }, [view])
-
   return (
     <div className="app-container">
       {/* Toast Notifications */}
@@ -610,10 +608,14 @@ function App() {
       {/* Navigation Header */}
       <header className="navbar">
         <div className="navbar-container">
-          <div className="logo" onClick={() => setView('jobs')} style={{ cursor: 'pointer' }}>
+          <div className="logo" onClick={() => { setView('jobs'); setSelectedJob(null); }} style={{ cursor: 'pointer' }}>
             <Briefcase size={24} className="animate-pulse-glow" style={{ color: '#8b5cf6' }} />
             <span>CareerPulse</span>
           </div>
+          
+          <button className="mobile-menu-toggle" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
           
           <nav className="nav-links">
             <span 
@@ -667,7 +669,7 @@ function App() {
             )}
 
             {user ? (
-              <div style={{ display: 'flex', alignPage: 'center', gap: '1rem', alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                 <span className="user-badge">
                   <User size={14} />
                   <span>{user.firstName} ({user.role.replace('ROLE_', '')})</span>
@@ -691,7 +693,82 @@ function App() {
         </div>
       </header>
 
-      {/* Main Content Area */}
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div className="mobile-menu glass-panel">
+          <span 
+            className={`nav-link ${view === 'jobs' ? 'active' : ''}`} 
+            onClick={() => { setView('jobs'); setSelectedJob(null); }}
+          >
+            Browse Jobs
+          </span>
+
+          {user?.role === 'ROLE_APPLICANT' && (
+            <>
+              <span 
+                className={`nav-link ${view === 'my-applications' ? 'active' : ''}`}
+                onClick={() => setView('my-applications')}
+              >
+                My Applications
+              </span>
+              <span 
+                className={`nav-link ${view === 'resumes' ? 'active' : ''}`}
+                onClick={() => setView('resumes')}
+              >
+                Resumes
+              </span>
+            </>
+          )}
+
+          {user?.role === 'ROLE_RECRUITER' && (
+            <span 
+              className={`nav-link ${view === 'posted-jobs' ? 'active' : ''}`}
+              onClick={() => { setView('posted-jobs'); setSelectedJobForApplicants(null); }}
+            >
+              Recruit Dashboard
+            </span>
+          )}
+
+          {user?.role === 'ROLE_ADMIN' && (
+            <>
+              <span 
+                className={`nav-link ${view === 'admin-reports' ? 'active' : ''}`}
+                onClick={() => setView('admin-reports')}
+              >
+                Stats Reports
+              </span>
+              <span 
+                className={`nav-link ${view === 'admin-users' ? 'active' : ''}`}
+                onClick={() => setView('admin-users')}
+              >
+                Manage Users
+              </span>
+            </>
+          )}
+
+          {user ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%', marginTop: '0.5rem' }}>
+              <span className="user-badge" style={{ alignSelf: 'flex-start' }}>
+                <User size={14} />
+                <span>{user.firstName} ({user.role.replace('ROLE_', '')})</span>
+              </span>
+              <button className="btn btn-secondary" onClick={handleLogout} style={{ width: '100%' }}>
+                <LogOut size={16} />
+                <span>Logout</span>
+              </button>
+            </div>
+          ) : (
+            <div className="auth-buttons">
+              <button className="btn btn-secondary" onClick={() => setShowAuthModal('login')} style={{ width: '100%' }}>
+                Sign In
+              </button>
+              <button className="btn btn-primary" onClick={() => { setShowAuthModal('register'); setAuthRole('ROLE_APPLICANT'); }} style={{ width: '100%' }}>
+                Get Started
+              </button>
+            </div>
+          )}
+        </div>
+      )}
       <main className="main-content">
         
         {/* PUBLIC JOB SEARCH & DETAILS */}
@@ -708,7 +785,7 @@ function App() {
             </div>
 
             {/* Interactive Search Bar Panel */}
-            <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '3rem', display: 'grid', gridTemplateColumns: '1fr 1fr 150px 140px', gap: '1rem', alignItems: 'center' }}>
+            <div className="glass-panel search-bar-grid" style={{ padding: '1.5rem', marginBottom: '3rem' }}>
               <div style={{ position: 'relative' }}>
                 <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                 <input 
@@ -954,8 +1031,7 @@ function App() {
 
         {/* APPLICANT: RESUMES MANAGEMENT */}
         {view === 'resumes' && user?.role === 'ROLE_APPLICANT' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', flexWrap: 'wrap' }}>
-            {/* Upload Area */}
+          <div className="responsive-grid-2">
             <div className="glass-panel" style={{ padding: '2rem' }}>
               <h3 style={{ fontSize: '1.25rem', marginBottom: '1.5rem', fontFamily: 'var(--font-heading)' }}>Upload New Resume</h3>
               <form onSubmit={handleUploadResume}>
@@ -1220,7 +1296,7 @@ function App() {
                 </div>
 
                 {/* Sub-breakdown sections */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', flexWrap: 'wrap' }}>
+                <div className="responsive-grid-2">
                   <div className="glass-panel" style={{ padding: '2rem' }}>
                     <h3 style={{ fontSize: '1.2rem', marginBottom: '1.25rem', fontFamily: 'var(--font-heading)' }}>User Role Breakdown</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
